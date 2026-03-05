@@ -1,0 +1,54 @@
+Welcome to the Enterprise AI Risk & Performance Intelligence System!
+
+This is a production-ready full-stack AI system for workforce analytics.
+
+🚀 QUICK START (Choose one):
+
+Option 1: Interactive Setup (Recommended)
+    python quickstart.py
+
+Option 2: Manual Start
+    1. pip install -r requirements.txt
+    2. copy .env.example .env (edit with your credentials)
+    3. python api/main.py (in Terminal 1)
+    4. streamlit run dashboard/app.py (in Terminal 2)
+
+Option 3: Docker
+    docker-compose up
+
+📚 DOCUMENTATION:
+    - GETTING_STARTED.md      ← Start here (5 minutes)
+    - README.md               ← Complete guide
+    - PROJECT_SUMMARY.md      ← What was built
+
+🎯 KEY FILES:
+    - api/main.py             → REST API (8 endpoints)
+    - dashboard/app.py        → Interactive dashboard
+    - ml_models/train_models.py → ML models
+    - train_models.py         → Training script
+    - config/.env.example     → Configuration template
+
+📊 SYSTEM FEATURES:
+    ✓ Risk prediction (delay & burnout)
+    ✓ Time series forecasting
+    ✓ Employee clustering
+    ✓ Reinforcement learning recommendations
+    ✓ Generative AI reports
+    ✓ Computer vision (optional)
+    ✓ Interactive dashboard
+    ✓ REST API
+
+🔗 AFTER STARTING:
+    API Docs:  http://localhost:8000/docs
+    Dashboard: http://localhost:8501
+    API:       http://localhost:8000
+
+📞 NEED HELP?
+    1. Read GETTING_STARTED.md
+    2. Check API documentation at /docs
+    3. Review README.md for detailed guide
+
+🎉 You're all set! Let's build intelligence into your workforce.
+
+---
+Created: March 2026 | Version: 1.0.0 | Status: Production Ready

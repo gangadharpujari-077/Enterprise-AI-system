@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # API Backend Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enterprise-ai-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ENVIRONMENT=production
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+    command: python api/main.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - enterprise-ai-network
+
+  # Streamlit Dashboard Service
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: enterprise-ai-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    volumes:
+      - ./dashboard:/app/dashboard
+      - ./models:/app/models
+    command: streamlit run dashboard/app.py
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - enterprise-ai-network
+
+  # PostgreSQL Database (optional - if using local Postgres instead of Supabase)
+  postgres:
+    image: postgres:15-alpine
+    container_name: enterprise-ai-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-enterprise_ai}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database_setup.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - enterprise-ai-network
+    profiles:
+      - with-db  # Only run with: docker-compose --profile with-db up
+
+  # Redis Cache (optional - for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: enterprise-ai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - enterprise-ai-network
+    profiles:
+      - with-cache  # Only run with: docker-compose --profile with-cache up
+
+networks:
+  enterprise-ai-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+# Usage:
+# 
+# 1. Basic setup (API + Dashboard only):
+#    docker-compose up
+#
+# 2. With local PostgreSQL database:
+#    docker-compose --profile with-db up
+#
+# 3. With Redis caching:
+#    docker-compose --profile with-cache up
+#
+# 4. With everything:
+#    docker-compose --profile with-db --profile with-cache up
+#
+# 5. Development mode with file watching:
+#    docker-compose up --build
+#
+# 6. Stop services:
+#    docker-compose down
+#
+# 7. Stop and remove volumes:
+#    docker-compose down -v
+#
+# Environment variables should be set in .env file
